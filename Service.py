@@ -1,12 +1,3 @@
-def get_int():
-    try:
-        number = int(input("> "))
-        return number
-    except:
-        print("Неверный формат ввода, попробуйте ещё раз")
-        return get_int()
-
-
 def get_float():
     try:
         number = float(input("> "))

@@ -1,5 +1,3 @@
-from numpy import arange
-import math
 import Service
 
 
@@ -11,88 +9,60 @@ def hello():
 
 def get_data():
     print("""Выберите уравнение:
-    1: sin(x)
-    2: x^3
-    3: sin(x) / x
-    4: 1 / x""")
+    1: x²
+    2: 1 / x
+    3: x³ - 3x² + 6x - 19""")
 
     match input("> "):
         case "1":
-            func = lambda x: math.sin(x)
-            d_func = lambda x: math.sin(x)
-            print("Вы выбрали функцию sin(x)")
+            func = lambda x: x ** 2
+            print("Вы выбрали функцию x²")
         case "2":
-            func = lambda x: x * x * x
-            d_func = lambda x: 0 * x
-            print("Вы выбрали функцию x^3")
-        case "3":
-            func = lambda x: math.sin(x) / x
-            d_func = lambda x: x * math.pow(x, -4) * (
-                    4 * x * math.cos(x) - 12 * math.sin(x) + 24 * math.sin(x) * math.pow(x, -2) - 24 * math.cos(
-                x) * math.pow(x, -1) + math.sin(x) * math.pow(x, 2))
-            print("Вы выбрали функцию sin(x)/x")
-        case "4":
             func = lambda x: 1 / x
-            d_func = lambda x: 24 * math.pow(x, -5)
-            print("Вы выбрали функцию 1/x")
+            print("Вы выбрали функцию 1 / x")
+        case "3":
+            func = lambda x: x ** 3 - 3 * (x ** 2) + 6 * x - 19
+            print("Вы выбрали функцию x³ - 3x² + 6x - 19")
         case _:
             print("Вы ввели некорректное значение")
             return get_data()
     left_border, right_border = Service.get_interval()
-    return func, left_border, right_border, Service.get_sigma(), d_func
+    return func, left_border, right_border, Service.get_sigma()
 
 
-def get_r(left_border, right_border, n, d_func, h):
-    r = 0
-    for i in arange(left_border, right_border, h):
-        try:
-            cur_r = d_func(i)
-            cur_r *= math.pow((right_border - left_border), 5)
-            cur_r /= (180 * math.pow(n, 4))
-        except ValueError:
-            cur_r = 0
-        if abs(cur_r) > r:
-            r = abs(cur_r)
-    return r
+def simpson(func, a, b, eps):
+    max_itr = 10
+    n = 4
 
+    result = float('inf')
 
-def print_gap(x):
-    print("Был найден разрыв функции в точке: " + str(x) +
-          "\nВыполняется расчёт левой и правой от разрыва частей интеграла")
+    while n <= n * (2 ** max_itr):
+        last_result = result
+        result = func(a) + func(b)
 
+        h = (b - a) / n
+        x = a + h
 
-def simpson(func, a, b, eps, d_func):
-    integral = 0
-    n = int((b - a) / eps)
-    h = (b - a) / n
+        for i in range(n - 1):
+            if i % 2 == 0:
+                result += 4 * func(x)
+            else:
+                result += 2 * func(x)
+            x += h
+        result *= h / 3
 
-    try:
-        integral += func(a)
-    except ZeroDivisionError:
-        print_gap(a)
+        if abs(result - last_result) <= eps:
+            break
+        else:
+            n *= 2
 
-    try:
-        integral += func(b)
-    except ZeroDivisionError:
-        print_gap(b)
-
-    for i in range(1, n):
-        k = 2 + 2 * (i % 2)
-        try:
-            integral += k * func(a + i * h)
-        except ZeroDivisionError:
-            print_gap(a + i * h)
-    integral *= h / 3
-
-    if get_r(a, b, n, d_func, h) >= abs(integral):
-        print("Был найден разрыв второго рода")
-        return
-    else:
-        return integral
+    return result, n
 
 
 hello()
-func, left_border, right_border, eps, d_func = get_data()
-result = simpson(func, left_border, right_border, eps, d_func)
+func, left_border, right_border, eps = get_data()
+result, n = simpson(func, left_border, right_border, eps)
 if result is not None:
-    print("Подсчитанный интеграл на интервале [" + str(left_border) + "; " + str(right_border) + "] равен: " + str(result))
+    print("Подсчитанный интеграл на интервале [" + str(left_border) + "; " + str(right_border) + "] равен: " + str(
+        result))
+    print("Количество разбиений: " + str(n))
