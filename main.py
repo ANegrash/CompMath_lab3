@@ -43,12 +43,16 @@ def simpson(func, a, b, eps):
         h = (b - a) / n
         x = a + h
 
-        for i in range(n - 1):
-            if i % 2 == 0:
-                result += 4 * func(x)
-            else:
-                result += 2 * func(x)
-            x += h
+        try:
+            for i in range(n - 1):
+                if i % 2 == 0:
+                    result += 4 * func(x)
+                else:
+                    result += 2 * func(x)
+                x += h
+        except ZeroDivisionError:
+            print("Найден разрыв 2 рода. Работа программы завершена")
+            return None, None
         result *= h / 3
 
         if abs(result - last_result) <= eps:
